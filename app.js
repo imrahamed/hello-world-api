@@ -5,7 +5,7 @@ import apiRoutes from "./src/routes/apiRoutes.js";
 import "dotenv/config";
 import redisClient from "./src/utils/redis-client.js";
 import swaggerUi from "swagger-ui-express"
-import swaggerDocument from "./sawgger.json"  assert { type: 'json' };
+import swaggerDocument from "./sawgger.js";
 
 const app = express();
 
