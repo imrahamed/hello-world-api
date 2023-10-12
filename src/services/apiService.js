@@ -14,9 +14,9 @@ import * as apiModel from "../models/apiModel.js";
  * @param {string} [error] - The error message (if any).
  * @throws {Error} Throws an error if an unexpected error occurs.
  */
-const logRequest = async (userId, status, error) => {
+const logRequest = async (userId, status, request, response, error) => {
     try {
-        await apiModel.logRequest(userId, status, error);
+        await apiModel.logRequest(userId, status, request, response, error);
     } catch (error) {
         console.error(error);
     }
@@ -84,48 +84,61 @@ const getCounts = async (fromTimestamp, toTimestamp) => {
     const totalFailures = await apiModel.getTotalFailures(fromTimestamp, toTimestamp);
     const totalCalls = await apiModel.getTotalCalls(fromTimestamp, toTimestamp);
     const totalUniqueUsers = await apiModel.getTotalUntotalUniqueUsers(fromTimestamp, toTimestamp);
-    return {
-        totalFailures,
-        totalCalls,
-        totalUniqueUsers,
-    };
+    return [
+        {
+            name: "Users",
+            value: totalUniqueUsers,
+        },
+        {
+            name: "Total API calls",
+            value: totalCalls,
+        },
+        {
+            name: "Failed API calls",
+            value: totalFailures,
+        },
+    ];
 };
 
 const getGraphData = async (fromTimestamp, toTimestamp) => {
     const aggregatedLogs = await apiModel.getAggregatedLogs(fromTimestamp, toTimestamp);
+    aggregatedLogs.sort(function (a, b) {
+        return new Date(a._id) - new Date(b._id);
+    });
+    const usersData = [];
+    const successData = [];
+    const failureData = [];
 
-    const labels = aggregatedLogs.map((entry) => entry._id);
-    const usersData = aggregatedLogs.map((entry) => entry.userCount.length);
-    const successData = aggregatedLogs.map((entry) => entry.successCount);
-    const failureData = aggregatedLogs.map((entry) => entry.failureCount);
+    for (const log of aggregatedLogs) {
+        usersData.push({
+            name: log._id,
+            value: log.userCount.length,
+        });
+        successData.push({
+            name: log._id,
+            value: log.successCount,
+        });
+        failureData.push({
+            name: log._id,
+            value: log.failureCount,
+        });
+    }
 
-    const data = {
-        labels: labels,
-        datasets: [
-            {
-                label: "Users",
-                data: usersData,
-                fill: false,
-                borderColor: "rgb(75, 192, 192)",
-                tension: 0.1,
-            },
-            {
-                label: "Successful API Calls",
-                data: successData,
-                fill: false,
-                borderColor: "rgb(75, 192, 192)",
-                tension: 0.1,
-            },
-            {
-                label: "Failure API Calls",
-                data: failureData,
-                fill: false,
-                borderColor: "rgb(75, 192, 192)",
-                tension: 0.1,
-            },
-        ],
-    };
-
+    const data = [
+        {
+            name: "Users",
+            series: usersData,
+        },
+        {
+            name: "Success",
+            series: successData,
+        },
+        {
+            name: "Failures",
+            series: failureData,
+        },
+    ];
+    console.log(data);
     return data;
 };
 

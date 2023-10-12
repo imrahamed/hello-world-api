@@ -72,11 +72,11 @@ const getLogs = async (req, res, next) => {
             fromTimestamp,
             toTimestamp,
             filter && JSON.parse(filter),
-            parseInt(page),
-            parseInt(pageSize)
+            parseInt(page) || 0,
+            parseInt(pageSize) || 100
         );
 
-        res.json({ logs });
+        res.json(logs);
     } catch (error) {
         next(error);
     }
@@ -100,11 +100,20 @@ const getCounts = async (req, res, next) => {
         const totalCalls = await apiService.getTotalCalls(fromTimestamp, toTimestamp);
         const totalUniqueUsers = await apiService.getTotalUniqueUsers(fromTimestamp, toTimestamp);
 
-        res.json({
-            totalFailures,
-            totalCalls,
-            totalUniqueUsers,
-        });
+        res.json([
+            {
+                name: "Users",
+                value: totalUniqueUsers,
+            },
+            {
+                name: "Total API calls",
+                value: totalCalls,
+            },
+            {
+                name: "Failed API calls",
+                value: totalFailures,
+            },
+        ]);
     } catch (error) {
         next(error);
     }

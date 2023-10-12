@@ -26,6 +26,9 @@ const ApiLogSchema = new Schema({
     request: Object,
     response: Object,
 });
+ApiLogSchema.index({ userId: 1 });
+ApiLogSchema.index({ timestamp: 1 });
+ApiLogSchema.index({ status: 1, timestamp: 1 });
 
 const ApiLog = model("ApiLog", ApiLogSchema);
 
@@ -111,11 +114,12 @@ const getLogs = async (fromTimestamp, toTimestamp, filter, page, pageSize) => {
     }
     const logs = await ApiLog.find(where)
         .sort({ timestamp: 1 })
-        .skip((page - 1) * pageSize)
+        .skip((page ? page - 1 : 0) * pageSize)
         .limit(pageSize)
         .exec();
+    const total = await ApiLog.count(where);
 
-    return logs;
+    return { logs, total };
 };
 
 /**
