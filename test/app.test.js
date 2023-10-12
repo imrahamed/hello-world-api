@@ -46,16 +46,20 @@ describe("apiController", () => {
 
             await getLogs(req, res, next);
 
-            expect(res.json).toHaveBeenCalledWith({ logs: mockLogs });
+            expect(res.json).toHaveBeenCalledWith(mockLogs);
         });
     });
 
     describe("getCounts", () => {
         it("returns counts", async () => {
-            const mockCounts = { totalFailures: 10, totalCalls: 20, totalUniqueUsers: 5 };
-            apiService.getTotalFailures.mockResolvedValue(mockCounts.totalFailures);
-            apiService.getTotalCalls.mockResolvedValue(mockCounts.totalCalls);
-            apiService.getTotalUniqueUsers.mockResolvedValue(mockCounts.totalUniqueUsers);
+            const mockCounts = [
+                { name: "Users", value: 5 },
+                { name: "Total API calls", value: 20 },
+                { name: "Failed API calls", value: 10 },
+            ];
+            apiService.getTotalFailures.mockResolvedValue(mockCounts[2].value);
+            apiService.getTotalCalls.mockResolvedValue(mockCounts[1].value);
+            apiService.getTotalUniqueUsers.mockResolvedValue(mockCounts[0].value);
 
             await getCounts(req, res, next);
 
